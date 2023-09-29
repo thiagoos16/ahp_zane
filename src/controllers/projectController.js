@@ -5,7 +5,7 @@ module.exports = {
         const { page, limit } = req.query;
 
         const projects = await Project.paginate({}, { page: page, limit: parseInt(limit) });
-
+    
         return res.json(projects);
     },
 
