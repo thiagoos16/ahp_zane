@@ -51,8 +51,8 @@ module.exports = {
 
             let paramater = await Paramater.create(data);
 
-            // eu acho que eu vou add no paramter os projectsLinkeds da seguinte forma:
             paramater = await paramater.updateOne({$push: {projects: projectsLinkeds}});
+            
             return res.send({ paramater });
         } catch(err) {
             console.log(err)
