@@ -1,4 +1,8 @@
 const Project = require('../models/Project');
+const Paramater = require('../models/Parameter');
+const { ObjectID } = require('mongodb');
+
+const { randomUUID } = require('node:crypto')
 
 module.exports = {
     async index(req, res) {
@@ -23,9 +27,57 @@ module.exports = {
         try {
             let data = req.body;
 
-            const projects = await Project.create(data);
+            const newProject = await Project.create(data);
 
-            return res.send({ projects });
+            // relacionar o novo projeto com todos os outros existentes para cada um dos critérios
+            
+            const projects = await Project.find();
+
+            let parameters =  await Paramater.find();
+
+            parameters.map(async parameter => {
+                const projectsLinkeds = [];
+
+                projects.map(project => {
+                    projectsLinkeds.push(
+                        {
+                            "code": randomUUID(),
+                            "projectBase": {
+                                _id: project._id,
+                                name: project.name
+                            },
+                            "projectSequent": {
+                                _id: newProject._id,
+                                name: newProject.name
+                            },
+                            "value": 0
+                        }
+                    )
+
+                    const projectsYetLinked = projectsLinkeds.filter(pj => pj.projectBase._id.equals(newProject._id) && pj.projectSequent._id.equals(project._id))
+
+                    if (projectsYetLinked.length == 0) {
+                        projectsLinkeds.push(
+                            {
+                                "code": randomUUID(),
+                                "projectBase": {
+                                    _id: newProject._id,
+                                    name: newProject.name
+                                },
+                                "projectSequent": {
+                                    _id: project._id,
+                                    name: project.name
+                                },
+                                "value": 0
+                            }
+                        )
+                    }
+                });
+                             
+                parameter = await parameter.updateOne({$push: {projects: projectsLinkeds}});
+            })
+
+            return res.send({ newProject });
         } catch(err) {
             return res.status(400).send({error: err});
         }
