@@ -51,7 +51,7 @@ module.exports = {
 
             let paramater = await Paramater.create(data);
 
-            paramater = await paramater.updateOne({$push: {projects: projectsLinkeds}});
+            await paramater.updateOne({$push: {projects: projectsLinkeds}});
             
             return res.send({ paramater });
         } catch(err) {
